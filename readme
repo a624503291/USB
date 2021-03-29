@@ -1,0 +1,11 @@
+USB :	PA11->DM 
+	 	PA12->DP
+LED :	PC13->0 on  1 off
+/*
+Usart:	PB6->Tx  
+	 	PB7->Rx
+*/
+功能说明：此USB实例引用于USB——Virual Seral Port
+经过个人修改，可实现STM32与PC机的简单通信。
+如：打开端口后向单片机发送'0'/'1'使led灯灭或亮的功能
+

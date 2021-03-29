@@ -25,6 +25,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 u8 Request = 0;
 
 LINE_CODING linecoding =
@@ -58,7 +59,7 @@ DEVICE_PROP Device_Property =
     Virtual_Com_Port_GetConfigDescriptor,
     Virtual_Com_Port_GetStringDescriptor,
     0,
-    0x40 /*MAX PACKET SIZE*/
+    64 /*MAX PACKET SIZE*/
   };
 
 USER_STANDARD_REQUESTS User_Standard_Requests =
@@ -138,10 +139,13 @@ void Virtual_Com_Port_init(void)
 *******************************************************************************/
 void Virtual_Com_Port_Reset(void)
 {
+
+
   /* Set Virtual_Com_Port DEVICE as not configured */
   pInformation->Current_Configuration = 0;
 
   /* Current Feature initialization */
+  //pInformation->Current_Feature = confdesc[7];
   pInformation->Current_Feature = Virtual_Com_Port_ConfigDescriptor[7];
 
   /* Set Virtual_Com_Port DEVICE with the default Interface*/

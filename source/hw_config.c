@@ -44,7 +44,7 @@ extern LINE_CODING linecoding;
 *******************************************************************************/
 void Set_System(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitTypeDef LED_InitStruct;
 
   /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration -----------------------------*/
   /* RCC system reset(for debug purpose) */
@@ -94,28 +94,36 @@ void Set_System(void)
   }
 
   /* Enable GPIOA, GPIOD and USART1 clock */
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD
-                         | RCC_APB2Periph_USART1, ENABLE);
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOA,ENABLE);
+                         //| RCC_APB2Periph_USART1, ENABLE); //打开B,D端口和串口时钟
 
   /* Enable USB_DISCONNECT GPIO clock */
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIO_DISCONNECT, ENABLE);
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIO_DISCONNECT, ENABLE);
 
   /* Configure USB pull-up pin */
-  GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
-  GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
+  //GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;	  					//PC13=GPIO_MODE_OUT_OD
+  //GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+  //GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
 
-  /* Configure USART1 Rx (PA.10) as input floating */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  /* Configure USART1 Rx (PA.10) as input floating */  					//usart1 Rx PB7
+ // GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+ // GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+ // GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-  /* Configure USART1 Tx (PA.09) as alternate function push-pull */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  /* Configure USART1 Tx (PA.09) as alternate function push-pull */	    //usart1 Tx PB6
+ // GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+ // GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ // GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ // GPIO_Init(GPIOB, &GPIO_InitStructure);
+ /*配置LED灯并作为PWM信号*/
+	LED_InitStruct.GPIO_Pin = GPIO_Pin_13;
+	LED_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+	LED_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOC, &LED_InitStruct);
+	GPIO_SetBits(GPIOC,GPIO_Pin_13); //初始化使灯-->off
+	 	
+
 }
 
 /*******************************************************************************
@@ -193,9 +201,9 @@ void USB_Interrupts_Config(void)
   NVIC_Init(&NVIC_InitStructure);
 
   /* Enable USART1 Interrupt */
-  NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQChannel;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_Init(&NVIC_InitStructure);
+ // NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQChannel;
+ // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+ // NVIC_Init(&NVIC_InitStructure);
 }
 
 /*******************************************************************************
@@ -206,13 +214,13 @@ void USB_Interrupts_Config(void)
 *******************************************************************************/
 void USB_Cable_Config (FunctionalState NewState)
 {
-  if (NewState != DISABLE)
+  if (NewState != DISABLE)//
   {
-    GPIO_ResetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+    GPIO_ResetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);//enable	  	//ture 0
   }
   else
   {
-    GPIO_SetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+    GPIO_SetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);  //disable    //false 1
   }
 }
 
@@ -343,22 +351,42 @@ void USB_To_USART_Send_Data(u8* data_buffer, u8 Nb_bytes)
 * Input          : None.
 * Return         : none.
 *******************************************************************************/
+
+
 void USART_To_USB_Send_Data(void)
 {
-  if (USART_InitStructure.USART_WordLength == USART_WordLength_8b)
+
+
+ if (USART_InitStructure.USART_WordLength == USART_WordLength_8b)
   {
     buffer_in[count_in] = USART_ReceiveData(USART1) & 0x7F;
+
   }
   else if (USART_InitStructure.USART_WordLength == USART_WordLength_9b)
   {
     buffer_in[count_in] = USART_ReceiveData(USART1);
-  }
-  count_in++;
+
+  }	 
+  count_in++; //5 0
   UserToPMABufferCopy(buffer_in, ENDP1_TXADDR, count_in);
+
   SetEPTxCount(ENDP1, count_in);
+
   SetEPTxValid(ENDP1);
 }
-
+//用户测试程序
+void User_To_USB_Send_Data(Text* buf)
+{
+	char i;
+	for(i=0;i<buf->len;i++){
+		buffer_in[count_in] = buf->buffer[i];	
+		count_in++;
+		UserToPMABufferCopy(buffer_in, ENDP1_TXADDR, count_in);
+		SetEPTxCount(ENDP1, count_in);
+		SetEPTxValid(ENDP1);
+	}
+}
+ 
 /*******************************************************************************
 * Function Name  : Get_SerialNum.
 * Description    : Create the serial number string descriptor.

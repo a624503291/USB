@@ -1,9 +1,9 @@
 /******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
-* File Name          : platform_config.h
+* File Name          : hw_config.h
 * Author             : MCD Application Team
 * Version            : V2.2.0
 * Date               : 06/13/2008
-* Description        : Evaluation board specific configuration file.
+* Description        : Hardware Configuration & Setup
 ********************************************************************************
 * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
 * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
@@ -14,39 +14,42 @@
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __PLATFORM_CONFIG_H
-#define __PLATFORM_CONFIG_H
+#ifndef __HW_CONFIG_H
+#define __HW_CONFIG_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f10x_type.h"
+#include "usb_type.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/* Uncomment the line corresponding to the STMicroelectronics evaluation board
-   used to run the example */
-#if !defined (USE_STM3210B_EVAL) &&  !defined (USE_STM3210E_EVAL)
- //#define USE_STM3210B_EVAL
- #define USE_STM3210E_EVAL
-#endif
-
-/* Define the STM32F10x hardware depending on the used evaluation board */
-#ifdef USE_STM3210B_EVAL
-
-  #define USB_DISCONNECT            GPIOD  
-  #define USB_DISCONNECT_PIN        GPIO_Pin_9
-  #define RCC_APB2Periph_GPIO_DISCONNECT      RCC_APB2Periph_GPIOD
-
-#else /* USE_STM3210E_EVAL */
-
-  #define USB_DISCONNECT            GPIOB  
-  #define USB_DISCONNECT_PIN        GPIO_Pin_14
-  #define RCC_APB2Periph_GPIO_DISCONNECT      RCC_APB2Periph_GPIOB
-
-#endif /* USE_STM3210B_EVAL */
-
 /* Exported macro ------------------------------------------------------------*/
+/* Exported define -----------------------------------------------------------*/
+#define MASS_MEMORY_START     0x04002000
+#define BULK_MAX_PACKET_SIZE  0x00000040
+#define LED_ON                0xF0
+#define LED_OFF               0xFF
+
+/*用户自定义*/
+typedef struct {
+	int len;
+	char* buffer;
+}Text;
+void User_To_USB_Send_Data(Text* buf);
 /* Exported functions ------------------------------------------------------- */
+void Set_System(void);
+void Set_USBClock(void);
+void Enter_LowPowerMode(void);
+void Leave_LowPowerMode(void);
+void USB_Interrupts_Config(void);
+void USB_Cable_Config (FunctionalState NewState);
+void USART_Config_Default(void);
+bool USART_Config(void);
+void USB_To_USART_Send_Data(u8* data_buffer, u8 Nb_bytes);
+void USART_To_USB_Send_Data(void);
 
-#endif /* __PLATFORM_CONFIG_H */
+void Get_SerialNum(void);
 
+/* External variables --------------------------------------------------------*/
+
+#endif  /*__HW_CONFIG_H*/
 /******************* (C) COPYRIGHT 2008 STMicroelectronics *****END OF FILE****/

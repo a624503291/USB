@@ -26,7 +26,15 @@
 /* Private variables ---------------------------------------------------------*/
 /* Extern variables ----------------------------------------------------------*/
 extern u32 count_out;
+extern u32 count_in;
 extern u8 buffer_out[VIRTUAL_COM_PORT_DATA_SIZE];
+//u8 buffer[]={"Test"};
+
+Text buf={
+   8,
+   "Receive!"
+};
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -40,23 +48,30 @@ extern u8 buffer_out[VIRTUAL_COM_PORT_DATA_SIZE];
 *******************************************************************************/
 int main(void)
 {
-
-#ifdef DEBUG
-  debug();
-#endif
-
   Set_System();
   Set_USBClock();
   USB_Interrupts_Config();
   USB_Init();
-
+  GPIO_SetBits(GPIOC,GPIO_Pin_13);
   while (1)
   {
     if ((count_out != 0) && (bDeviceState == CONFIGURED))
     {
-      USB_To_USART_Send_Data(&buffer_out[0], count_out);
+      //USB_To_USART_Send_Data(&buffer_out[0], count_out);
+	  if(buffer_out[0]=='1')
+	  {
+		GPIO_ResetBits(GPIOC,GPIO_Pin_13);
+	  }
+	  else if(buffer_out[0]=='0')
+	  GPIO_SetBits(GPIOC,GPIO_Pin_13);
+	  //USART_To_USB_Send_Data();
+
+	  User_To_USB_Send_Data(&buf);
       count_out = 0;
-    }
+    } 
+	 
+	
+	
   }
 }
 
